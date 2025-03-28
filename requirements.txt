@@ -1,0 +1,12 @@
+# Dépendances de base
+tkinter  # Généralement inclus avec Python
+
+# Dépendances système (optionnelles)
+psutil>=5.9.0  # Pour des fonctionnalités système avancées
+
+# Interface utilisateur améliorée (optionnel)
+pillow>=9.0.0  # Pour les opérations sur les images, nécessaire pour pystray
+pystray>=0.19.0  # Pour l'icône dans la barre des tâches
+
+# Compatibilité multi-plateforme pour les notifications
+plyer>=2.0.0  # Pour les notifications système multi-plateformes
