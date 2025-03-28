@@ -1,4 +1,5 @@
-
+# Dépendances de base
+tkinter  # Généralement inclus avec Python
 
 # Dépendances système (optionnelles)
 psutil>=5.9.0  # Pour des fonctionnalités système avancées
