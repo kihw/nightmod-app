@@ -49,11 +49,12 @@ def check_requirements():
     
     # Vérifier les dépendances du projet
     try:
-        subprocess.run(
-            [sys.executable, "-m", "pip", "install", "-r", "requirements.txt"],
-            check=True
-        )
-        print("✓ Dépendances du projet installées")
+        if os.path.exists("requirements.txt"):
+            subprocess.run(
+                [sys.executable, "-m", "pip", "install", "-r", "requirements.txt"],
+                check=True
+            )
+            print("✓ Dépendances du projet installées")
     except subprocess.CalledProcessError:
         print("✗ Erreur lors de l'installation des dépendances")
         sys.exit(1)
@@ -78,17 +79,20 @@ def build_for_windows():
     """Compile l'application pour Windows"""
     print_header("Compilation pour Windows")
     
+    # Vérifier si l'icône existe
     icon_path = os.path.join("assets", "icon.ico")
     if not os.path.exists(icon_path):
         print("! Icône non trouvée, utilisation de l'icône par défaut")
         icon_path = None
     
+    # Préparer la commande PyInstaller
     cmd = [
+        sys.executable,
+        "-m",
         "pyinstaller",
         "--name=NightMod",
         "--onefile",
         "--windowed",
-        f"--version-file=VERSION",
     ]
     
     if icon_path:
@@ -96,156 +100,40 @@ def build_for_windows():
     
     cmd.append("nightmod.py")
     
-    # Créer un fichier de version pour Windows
-    with open("VERSION", "w") as f:
-        f.write(f"""
-VSVersionInfo(
-  ffi=FixedFileInfo(
-    filevers=(1, 0, 0, 0),
-    prodvers=(1, 0, 0, 0),
-    mask=0x3f,
-    flags=0x0,
-    OS=0x40004,
-    fileType=0x1,
-    subtype=0x0,
-    date=(0, 0)
-  ),
-  kids=[
-    StringFileInfo(
-      [
-        StringTable(
-          u'040904B0',
-          [StringStruct(u'CompanyName', u'NightMod'),
-          StringStruct(u'FileDescription', u'Surveillant de sommeil et économiseur d'énergie'),
-          StringStruct(u'FileVersion', u'{VERSION}'),
-          StringStruct(u'InternalName', u'nightmod'),
-          StringStruct(u'LegalCopyright', u'© 2025 NightMod'),
-          StringStruct(u'OriginalFilename', u'NightMod.exe'),
-          StringStruct(u'ProductName', u'NightMod'),
-          StringStruct(u'ProductVersion', u'{VERSION}')])
-      ]
-    ),
-    VarFileInfo([VarStruct(u'Translation', [1033, 1200])])
-  ]
-)
-""")
-    
     # Exécuter PyInstaller
-    subprocess.run(cmd, check=True)
+    try:
+        subprocess.run(cmd, check=True)
+        print("✓ Compilation réussie")
+    except subprocess.CalledProcessError as e:
+        print(f"✗ Erreur lors de la compilation: {e}")
+        return False
     
     # Créer le dossier 'release' s'il n'existe pas
     os.makedirs("release", exist_ok=True)
     
-    # Compiler pour la plateforme actuelle
-    if current_system == "Windows":
-        build_for_windows()
-    elif current_system == "Darwin":  # macOS
-        build_for_macos()
-    elif current_system == "Linux":
-        build_for_linux()
-    else:
-        print(f"Système non pris en charge: {current_system}")
-        return
-    
-    print_header("Compilation terminée")
-    print(f"Les fichiers compilés sont disponibles dans le dossier 'release'")
-
-
-if __name__ == "__main__":
-    main()=True)
-    
-    # Créer un fichier d'installation NSIS
-    with open("installer.nsi", "w") as f:
-        f.write(f"""
-!include "MUI2.nsh"
-
-Name "NightMod"
-OutFile "release\\NightMod-Setup-{VERSION}.exe"
-InstallDir "$PROGRAMFILES\\NightMod"
-RequestExecutionLevel admin
-
-!insertmacro MUI_PAGE_WELCOME
-!insertmacro MUI_PAGE_DIRECTORY
-!insertmacro MUI_PAGE_INSTFILES
-!insertmacro MUI_PAGE_FINISH
-
-!insertmacro MUI_UNPAGE_CONFIRM
-!insertmacro MUI_UNPAGE_INSTFILES
-
-!insertmacro MUI_LANGUAGE "French"
-
-Section "Install"
-  SetOutPath "$INSTDIR"
-  File "dist\\NightMod.exe"
-  
-  ; Créer le répertoire pour les icônes
-  CreateDirectory "$INSTDIR\\assets"
-  SetOutPath "$INSTDIR\\assets"
-  File "assets\\icon.ico"
-  
-  ; Créer le dossier dans le menu Démarrer
-  CreateDirectory "$SMPROGRAMS\\NightMod"
-  CreateShortcut "$SMPROGRAMS\\NightMod\\NightMod.lnk" "$INSTDIR\\NightMod.exe" "" "$INSTDIR\\assets\\icon.ico"
-  CreateShortcut "$SMPROGRAMS\\NightMod\\Désinstaller.lnk" "$INSTDIR\\uninstall.exe"
-  
-  ; Créer un raccourci sur le bureau
-  CreateShortcut "$DESKTOP\\NightMod.lnk" "$INSTDIR\\NightMod.exe" "" "$INSTDIR\\assets\\icon.ico"
-  
-  ; Créer le désinstallateur
-  WriteUninstaller "$INSTDIR\\uninstall.exe"
-  
-  ; Ajouter des informations au désinstallateur
-  WriteRegStr HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\NightMod" "DisplayName" "NightMod"
-  WriteRegStr HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\NightMod" "UninstallString" "$\\"$INSTDIR\\uninstall.exe$\\""
-  WriteRegStr HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\NightMod" "DisplayIcon" "$\\"$INSTDIR\\assets\\icon.ico$\\""
-  WriteRegStr HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\NightMod" "DisplayVersion" "{VERSION}"
-  WriteRegStr HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\NightMod" "Publisher" "NightMod"
-SectionEnd
-
-Section "Uninstall"
-  Delete "$INSTDIR\\NightMod.exe"
-  Delete "$INSTDIR\\assets\\icon.ico"
-  Delete "$INSTDIR\\uninstall.exe"
-  
-  RMDir "$INSTDIR\\assets"
-  RMDir "$INSTDIR"
-  
-  Delete "$SMPROGRAMS\\NightMod\\NightMod.lnk"
-  Delete "$SMPROGRAMS\\NightMod\\Désinstaller.lnk"
-  RMDir "$SMPROGRAMS\\NightMod"
-  
-  Delete "$DESKTOP\\NightMod.lnk"
-  
-  DeleteRegKey HKLM "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\NightMod"
-SectionEnd
-""")
-    
-    # Vérifier si NSIS est installé
-    try:
-        subprocess.run(
-            ["makensis", "installer.nsi"],
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        print(f"✓ Installateur Windows créé: release/NightMod-Setup-{VERSION}.exe")
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        print("! NSIS non trouvé, l'installateur Windows n'a pas été créé")
-        print(f"✓ Executable Windows créé: dist/NightMod.exe")
-        
-        # Copier l'exécutable dans le dossier release
+    # Copier l'exécutable compilé dans le dossier release
+    if os.path.exists("dist/NightMod.exe"):
         shutil.copy("dist/NightMod.exe", f"release/NightMod-{VERSION}.exe")
+        print(f"✓ Executable Windows créé: release/NightMod-{VERSION}.exe")
+        return True
+    else:
+        print("✗ L'exécutable n'a pas été créé correctement")
+        return False
 
 def build_for_macos():
     """Compile l'application pour macOS"""
     print_header("Compilation pour macOS")
     
+    # Vérifier si l'icône existe
     icon_path = os.path.join("assets", "icon.icns")
     if not os.path.exists(icon_path):
         print("! Icône .icns non trouvée, utilisation de l'icône par défaut")
         icon_path = None
     
+    # Préparer la commande PyInstaller
     cmd = [
+        sys.executable,
+        "-m",
         "pyinstaller",
         "--name=NightMod",
         "--onefile",
@@ -258,38 +146,42 @@ def build_for_macos():
     cmd.append("nightmod.py")
     
     # Exécuter PyInstaller
-    subprocess.run(cmd, check=True)
+    try:
+        subprocess.run(cmd, check=True)
+        print("✓ Compilation réussie")
+    except subprocess.CalledProcessError as e:
+        print(f"✗ Erreur lors de la compilation: {e}")
+        return False
     
     # Créer le dossier 'release' s'il n'existe pas
     os.makedirs("release", exist_ok=True)
     
-    # Créer un DMG
-    try:
-        subprocess.run([
-            "hdiutil", "create",
-            "-volname", "NightMod",
-            "-srcfolder", "dist/NightMod.app",
-            "-ov", "-format", "UDZO",
-            f"release/NightMod-{VERSION}.dmg"
-        ], check=True)
-        print(f"✓ Image disque macOS créée: release/NightMod-{VERSION}.dmg")
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        print("! Impossible de créer l'image disque DMG")
-        print(f"✓ Application macOS créée: dist/NightMod.app")
-        
-        # Copier l'application dans le dossier release
-        shutil.copytree("dist/NightMod.app", f"release/NightMod-{VERSION}.app", dirs_exist_ok=True)
+    # Copier l'application dans le dossier release
+    if os.path.exists("dist/NightMod.app"):
+        release_path = f"release/NightMod-{VERSION}.app"
+        if os.path.exists(release_path):
+            shutil.rmtree(release_path)
+        shutil.copytree("dist/NightMod.app", release_path)
+        print(f"✓ Application macOS créée: {release_path}")
+        return True
+    else:
+        print("✗ L'application n'a pas été créée correctement")
+        return False
 
 def build_for_linux():
     """Compile l'application pour Linux"""
     print_header("Compilation pour Linux")
     
+    # Vérifier si l'icône existe
     icon_path = os.path.join("assets", "icon.png")
     if not os.path.exists(icon_path):
         print("! Icône non trouvée, utilisation de l'icône par défaut")
         icon_path = None
     
+    # Préparer la commande PyInstaller
     cmd = [
+        sys.executable,
+        "-m",
         "pyinstaller",
         "--name=nightmod",
         "--onefile",
@@ -302,14 +194,18 @@ def build_for_linux():
     cmd.append("nightmod.py")
     
     # Exécuter PyInstaller
-    subprocess.run(cmd, check=True)
+    try:
+        subprocess.run(cmd, check=True)
+        print("✓ Compilation réussie")
+    except subprocess.CalledProcessError as e:
+        print(f"✗ Erreur lors de la compilation: {e}")
+        return False
     
     # Créer le dossier 'release' s'il n'existe pas
     os.makedirs("release", exist_ok=True)
     
     # Créer un script d'installation
-    with open("dist/install.sh", "w") as f:
-        f.write("""#!/bin/bash
+    install_script = """#!/bin/bash
 # Script d'installation pour NightMod (Linux)
 
 # Vérifier les permissions root
@@ -344,23 +240,38 @@ EOF
 
 echo "Installation terminée!"
 echo "Vous pouvez lancer NightMod en tapant 'nightmod' dans le terminal ou en le recherchant dans votre menu d'applications."
-""")
+"""
+    
+    # Créer un dossier temporaire pour l'installation
+    os.makedirs("dist/package", exist_ok=True)
+    
+    # Copier l'exécutable
+    if os.path.exists("dist/nightmod"):
+        shutil.copy("dist/nightmod", "dist/package/")
+    else:
+        print("✗ L'exécutable n'a pas été créé correctement")
+        return False
+    
+    # Écrire le script d'installation
+    with open("dist/package/install.sh", "w") as f:
+        f.write(install_script)
     
     # Rendre le script exécutable
-    os.chmod("dist/install.sh", 0o755)
+    os.chmod("dist/package/install.sh", 0o755)
     
     # Copier les assets
     if os.path.exists("assets"):
-        os.makedirs("dist/assets", exist_ok=True)
+        os.makedirs("dist/package/assets", exist_ok=True)
         for file in os.listdir("assets"):
             src = os.path.join("assets", file)
             if os.path.isfile(src):
-                shutil.copy(src, os.path.join("dist/assets", file))
+                shutil.copy(src, os.path.join("dist/package/assets", file))
     
     # Créer une archive tar.gz
     archive_name = f"NightMod-{VERSION}-Linux"
-    shutil.make_archive(f"release/{archive_name}", "gztar", "dist")
+    shutil.make_archive(f"release/{archive_name}", "gztar", "dist/package")
     print(f"✓ Archive Linux créée: release/{archive_name}.tar.gz")
+    return True
 
 def main():
     """Fonction principale"""
@@ -376,4 +287,30 @@ def main():
     clean_build_dir()
     
     # Créer le dossier 'release' s'il n'existe pas
-    os.makedirs("release", exist_ok
+    os.makedirs("release", exist_ok=True)
+    
+    # Compiler pour la plateforme actuelle
+    success = False
+    
+    if current_system == "Windows":
+        success = build_for_windows()
+    elif current_system == "Darwin":  # macOS
+        success = build_for_macos()
+    elif current_system == "Linux":
+        success = build_for_linux()
+    else:
+        print(f"Système non pris en charge: {current_system}")
+        sys.exit(1)
+    
+    # Afficher le résultat final
+    if success:
+        print_header("Compilation terminée avec succès")
+        print(f"Les fichiers compilés sont disponibles dans le dossier 'release'")
+    else:
+        print_header("La compilation a échoué")
+        print("Consultez les messages d'erreur ci-dessus pour plus d'informations")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
