@@ -501,10 +501,9 @@ class NightModApp(tk.Tk):
         else:
             messagebox.showerror("NightMod", "Erreur lors de l'enregistrement des paramètres.")
     
-    def on_close(self, force_quit=False):
+    def on_close(self):
         """Gère la fermeture de l'application"""
-        # Si force_quit est True, quitter directement sans minimiser
-        if not force_quit and self.minimize_var.get() and hasattr(self, 'tray_icon') and self.tray_icon.is_available() and not self.winfo_toplevel().wm_state() == 'iconic':
+        if self.minimize_var.get() and hasattr(self, 'tray_icon') and self.tray_icon.is_available() and not self.winfo_toplevel().wm_state() == 'iconic':
             # Minimiser dans la barre des tâches au lieu de quitter
             self.withdraw()
             return
