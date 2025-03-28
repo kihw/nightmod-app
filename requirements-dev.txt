@@ -1,0 +1,26 @@
+# Dépendances de développement pour NightMod
+
+# Dépendances principales
+-r requirements.txt
+
+# Outils de test
+pytest>=7.0.0
+pytest-cov>=3.0.0
+
+# Linting et formatage
+flake8>=5.0.0
+pylint>=2.15.0
+black>=22.8.0
+
+# Documentation
+sphinx>=5.0.0
+sphinx-rtd-theme>=1.0.0
+
+# Packaging et distribution
+wheel>=0.38.0
+twine>=4.0.0
+setuptools>=65.0.0
+build>=0.8.0
+
+# Analyse statique
+mypy>=0.971
