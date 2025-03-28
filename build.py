@@ -87,9 +87,9 @@ def build_for_windows():
     
     # Préparer la commande PyInstaller
     cmd = [
-        sys.executable,  # Utilise le même Python que celui qui exécute le script
+        sys.executable,
         "-m",
-        "PyInstaller",  # Appelle le module PyInstaller directement
+        "pyinstaller",
         "--name=NightMod",
         "--onefile",
         "--windowed",
