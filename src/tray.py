@@ -172,53 +172,6 @@ class TrayIcon:
                 except:
                     pass  # Ignorer les erreurs car cette fonctionnalité est optionnelle
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
     def find_icon_file(self):
         """Trouve le fichier d'icône approprié selon la plateforme"""
         # Chemins possibles pour l'icône
@@ -260,18 +213,6 @@ class TrayIcon:
                 self.tray_icon.stop()
             except Exception as e:
                 logger.error(f"Erreur lors de l'arrêt de l'icône de la barre des tâches: {e}")
-    
-    def update_icon(self, is_monitoring):
-        """Met à jour l'icône pour refléter l'état de la surveillance"""
-        # Cette fonctionnalité dépend de la bibliothèque pystray
-        # et pourrait ne pas être supportée par toutes les versions
-        if self.tray_icon:
-            try:
-                # Mise à jour du texte de survol
-                status = "actif" if is_monitoring else "inactif"
-                self.tray_icon.title = f"NightMod ({status})"
-            except:
-                pass  # Ignorer les erreurs car cette fonctionnalité est optionnelle
     
     def is_available(self):
         """Vérifie si l'icône de la barre des tâches est disponible"""
