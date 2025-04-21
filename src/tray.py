@@ -50,20 +50,24 @@ class TrayIcon:
                     raise FileNotFoundError("Aucune icône trouvée")
             except Exception as e:
                 logger.warning(f"Impossible de charger l'icône: {e}")
-                # Créer une icône de secours
-                icon_image = Image.new('RGB', (64, 64), color=(47, 47, 47))
-                d = ImageDraw.Draw(icon_image)
-                d.rectangle((10, 10, 54, 54), fill=(0, 120, 215))
+                # Créer une icône de secours plus élégante
+                icon_image = self.create_default_icon(is_active=False)
             
-            # Définir le menu
+            # Enregistrer les images d'état
+            self.active_icon = icon_image
+            
+            # Créer une version désactivée de l'icône
+            self.inactive_icon = self.create_grayscale_version(icon_image)
+            
+            # Définir le menu avec libellés plus clairs
             menu = pystray.Menu(
-                pystray.MenuItem("Afficher/Masquer", self.toggle_window_callback),
-                pystray.MenuItem("Démarrer/Arrêter", self.toggle_monitoring_callback),
+                pystray.MenuItem("Ouvrir NightMod", self.toggle_window_callback),
+                pystray.MenuItem("Surveillance active", self.toggle_monitoring_callback, checked=lambda _: self.app.is_running),
                 pystray.MenuItem("Quitter", self.quit_callback)
             )
             
             # Créer l'icône
-            self.tray_icon = pystray.Icon("nightmod", icon_image, "NightMod", menu)
+            self.tray_icon = pystray.Icon("nightmod", icon_image, "NightMod (inactif)", menu)
             
             # Démarrer l'icône dans un thread
             self.is_running = True
@@ -82,6 +86,139 @@ class TrayIcon:
             self.tray_icon = None
             return False
     
+    def create_default_icon(self, is_active=False):
+        """Crée une icône par défaut moderne en cas d'absence du fichier d'icône"""
+        from PIL import Image, ImageDraw
+        
+        # Tailles et couleurs
+        size = 64
+        padding = 6
+        
+        # Couleurs de base
+        if is_active:
+            bg_color = (32, 32, 32)
+            circle_color = (76, 175, 80)  # Vert
+        else:
+            bg_color = (32, 32, 32)
+            circle_color = (128, 128, 128)  # Gris
+        
+        # Créer l'image de base (fond transparent)
+        icon = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(icon)
+        
+        # Dessiner un cercle avec un croissant de lune
+        # Cercle principal
+        draw.ellipse(
+            (padding, padding, size - padding, size - padding),
+            fill=circle_color
+        )
+        
+        # Créer un effet de "lune" en décalant un cercle légèrement
+        draw.ellipse(
+            (padding + size//5, padding, size - padding + size//5, size - padding),
+            fill=bg_color
+        )
+        
+        return icon
+    
+    def create_grayscale_version(self, original_icon):
+        """Crée une version grisée de l'icône pour l'état inactif"""
+        from PIL import Image, ImageOps, ImageEnhance
+        
+        # Créer une copie pour ne pas modifier l'original
+        if original_icon.mode != 'RGBA':
+            # Convertir en RGBA si ce n'est pas déjà le cas
+            grayscale = original_icon.convert('RGBA')
+        else:
+            grayscale = original_icon.copy()
+        
+        # Extraire les couches alpha
+        alpha = grayscale.split()[3]
+        
+        # Convertir en niveaux de gris
+        grayscale = ImageOps.grayscale(grayscale.convert('RGB'))
+        
+        # Réduire la luminosité et le contraste
+        enhancer = ImageEnhance.Brightness(grayscale)
+        grayscale = enhancer.enhance(0.7)
+        
+        enhancer = ImageEnhance.Contrast(grayscale)
+        grayscale = enhancer.enhance(0.8)
+        
+        # Reconvertir en RGBA et réappliquer l'alpha
+        grayscale = grayscale.convert('RGBA')
+        grayscale.putalpha(alpha)
+        
+        return grayscale
+    
+    def update_icon(self, is_monitoring):
+        """Met à jour l'icône pour refléter l'état de la surveillance"""
+        if self.tray_icon:
+            try:
+                # Mettre à jour l'icône en fonction de l'état
+                if is_monitoring:
+                    self.tray_icon.icon = self.active_icon
+                    self.tray_icon.title = "NightMod (actif)"
+                else:
+                    self.tray_icon.icon = self.inactive_icon  # Utiliser l'icône grisée
+                    self.tray_icon.title = "NightMod (inactif)"
+            except Exception as e:
+                logger.error(f"Erreur lors de la mise à jour de l'icône: {e}")
+                # Si la mise à jour de l'icône échoue, essayer une approche plus simple
+                try:
+                    # Mise à jour du texte de survol uniquement
+                    status = "actif" if is_monitoring else "inactif"
+                    self.tray_icon.title = f"NightMod ({status})"
+                except:
+                    pass  # Ignorer les erreurs car cette fonctionnalité est optionnelle
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
     def find_icon_file(self):
         """Trouve le fichier d'icône approprié selon la plateforme"""
         # Chemins possibles pour l'icône
