@@ -56,39 +56,61 @@ class PopupChecker(tk.Toplevel):
         self.countdown()
     
     def setup_style(self):
-        """Configure le style de la fenêtre"""
+        """Configure un style moderne et minimaliste pour la fenêtre popup"""
         # Utiliser un thème sombre pour moins fatiguer les yeux
-        self.configure(background="#2E2E2E")
-        
+        self.configure(background="#202020")
+
         self.style = ttk.Style(self)
-        
-        # Configuration générale du style
-        self.style.configure("TFrame", background="#2E2E2E")
-        self.style.configure("TLabel", background="#2E2E2E", foreground="#FFFFFF", font=("Segoe UI", 10))
-        self.style.configure("Title.TLabel", font=("Segoe UI", 14, "bold"))
-        self.style.configure("Time.TLabel", font=("Segoe UI", 12), foreground="#F0F0F0")
-        
-        # Style du bouton principal
-        self.style.configure("Accent.TButton", 
-                             font=("Segoe UI", 11),
-                             padding=8,
-                             background="#4285f4")
-        
+
+        # Style de base sombre pour le confort nocturne
+        self.style.configure("Dark.TFrame", background="#202020")
+        self.style.configure("Dark.TLabel", background="#202020", foreground="#FFFFFF")
+
+        # Texte du titre
+        self.style.configure("Title.TLabel", 
+                             background="#202020", 
+                             foreground="#FFFFFF", 
+                             font=("Segoe UI", 16, "bold"))
+
+        # Style du compte à rebours
+        self.style.configure("Time.TLabel", 
+                             background="#202020", 
+                             foreground="#4CAF50",  # Vert pour un départ calme
+                             font=("Segoe UI", 32, "bold"))
+
+        # Style info
+        self.style.configure("Info.TLabel", 
+                             background="#202020", 
+                             foreground="#AAAAAA",
+                             font=("Segoe UI", 9))
+
+        # Style du bouton principal - Visible mais pas agressif
+        self.style.configure("Sleep.TButton", 
+                             font=("Segoe UI", 12, "bold"),
+                             padding=12,
+                             background="#333333",  # Fond sombre
+                             foreground="#FFFFFF")  # Texte clair pour contraste
+
+        self.style.map("Sleep.TButton", 
+                       background=[("pressed", "#3C9E3C"), ("active", "#3C9E3C")],
+                       foreground=[("pressed", "#FFFFFF"), ("active", "#FFFFFF")])
+
         # Tenter de charger un thème moderne si disponible
         if platform.system() == "Windows":
             try:
-                from tkinter import _tkinter
-                self.tk.call("source", "themes/azure.tcl")
-                self.tk.call("set_theme", "dark")
-            except Exception:
-                pass
+                theme_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "themes/azure.tcl")
+                if os.path.exists(theme_path):
+                    self.tk.call("source", theme_path)
+                    self.tk.call("set_theme", "dark")
+            except Exception as e:
+                logger.warning(f"Impossible de charger le thème: {e}")
+
     def create_widgets(self):
         """Crée les éléments d'interface de la fenêtre popup avec un design plus élégant"""
-        main_frame = ttk.Frame(self, padding="30 30 30 30")
+        main_frame = ttk.Frame(self, padding="30 30 30 30", style="Dark.TFrame")
         main_frame.pack(fill=tk.BOTH, expand=True)
         
         # Fond légèrement plus foncé pour mieux ressortir la nuit
-        main_frame.configure(style="Dark.TFrame")
         
         # Message principal - Plus grand et accrocheur
         title_frame = ttk.Frame(main_frame, style="Dark.TFrame")
@@ -97,7 +119,6 @@ class PopupChecker(tk.Toplevel):
         ttk.Label(
             title_frame, 
             text="Êtes-vous encore éveillé ?", 
-            font=("Segoe UI", 16, "bold"),
             style="Title.TLabel"
         ).pack(anchor=tk.CENTER)
         
@@ -118,7 +139,6 @@ class PopupChecker(tk.Toplevel):
             command=self.handle_response,
             style="Sleep.TButton",  # Style personnalisé plus visible
             width=20,
-            padding=(10, 12)  # Bouton plus grand
         )
         response_button.pack(pady=15)
         response_button.focus_set()
@@ -234,74 +254,28 @@ class PopupChecker(tk.Toplevel):
             except Exception as e:
                 logger.warning(f"Impossible de jouer le son: {e}")
     
-
-    def setup_style(self):
-        """Configure un style moderne et minimaliste pour la fenêtre popup"""
-        # Utiliser un thème sombre pour moins fatiguer les yeux
-        self.configure(background="#202020")
-
-        self.style = ttk.Style(self)
-
-        # Style de base sombre pour le confort nocturne
-        self.style.configure("Dark.TFrame", background="#202020")
-        self.style.configure("Dark.TLabel", background="#202020", foreground="#FFFFFF")
-
-        # Texte du titre
-        self.style.configure("Title.TLabel", 
-                             background="#202020", 
-                             foreground="#FFFFFF", 
-                             font=("Segoe UI", 16, "bold"))
-
-        # Style du compte à rebours
-        self.style.configure("Time.TLabel", 
-                             background="#202020", 
-                             foreground="#4CAF50",  # Vert pour un départ calme
-                             font=("Segoe UI", 32, "bold"))
-
-        # Style info
-        self.style.configure("Info.TLabel", 
-                             background="#202020", 
-                             foreground="#AAAAAA",
-                             font=("Segoe UI", 9))
-
-        # Style du bouton principal - Visible mais pas agressif
-        self.style.configure("Sleep.TButton", 
-                             font=("Segoe UI", 12, "bold"),
-                             padding=12,
-                             background="#4CAF50",
-                             foreground="#FFFFFF")
-
-        self.style.map("Sleep.TButton", 
-                       background=[("pressed", "#3C9E3C"), ("active", "#3C9E3C")],
-                       foreground=[("pressed", "#FFFFFF"), ("active", "#FFFFFF")])
-
-        # Tenter de charger un thème moderne si disponible
-        if platform.system() == "Windows":
-            try:
-                theme_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "themes/azure.tcl")
-                if os.path.exists(theme_path):
-                    self.tk.call("source", theme_path)
-                    self.tk.call("set_theme", "dark")
-            except Exception as e:
-                logger.warning(f"Impossible de charger le thème: {e}")
-
     def animate_warning(self):
         """Anime le texte pour attirer l'attention de façon progressive"""
         # Couleurs différentes selon l'urgence
         if self.remaining_time <= 5:
             # Rouge clignotant pour les 5 dernières secondes
             if self.remaining_time % 2 == 0:
-                self.time_label.configure(foreground="#FF5555")  # Rouge
+                self.canvas.itemconfig(self.time_label, fill="#FF5555")  # Rouge
+                self.canvas.itemconfig(self.circle_progress, outline="#FF5555")
                 # Jouer un son plus urgent
                 self.bell()
             else:
-                self.time_label.configure(foreground="#FF8888")  # Rouge plus clair
+                self.canvas.itemconfig(self.time_label, fill="#FF8888")  # Rouge plus clair
+                self.canvas.itemconfig(self.circle_progress, outline="#FF8888")
         elif self.remaining_time <= 10:
             # Orange fixe pour avertissement
-            self.time_label.configure(foreground="#FFA500")  # Orange
+            self.canvas.itemconfig(self.time_label, fill="#FFA500")  # Orange
+            self.canvas.itemconfig(self.circle_progress, outline="#FFA500")
         else:
             # Vert normal pour temps confortable
-            self.time_label.configure(foreground="#4CAF50")  # Vert
+            self.canvas.itemconfig(self.time_label, fill="#4CAF50")  # Vert
+            self.canvas.itemconfig(self.circle_progress, outline="#4CAF50")
+
     def create_countdown_indicator(self, parent):
         """Crée un indicateur visuel de compte à rebours circulaire"""
         # Créer un canvas pour l'indicateur circulaire
@@ -398,6 +372,7 @@ class PopupChecker(tk.Toplevel):
         else:
             self.canvas.itemconfig(self.circle_progress, outline="#4CAF50")  # Vert
             self.canvas.itemconfig(self.time_label, fill="#FFFFFF")  # Texte blanc
+    
     def handle_response(self, event=None):
         """Appelé quand l'utilisateur répond au popup"""
         logger.info("Réponse reçue de l'utilisateur")

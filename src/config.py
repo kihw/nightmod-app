@@ -19,7 +19,12 @@ DEFAULT_CONFIG = {
     "shutdown_action": "shutdown",  # Options: shutdown, sleep, lock
     "sound_enabled": True,
     "start_with_system": False,
-    "minimize_to_tray": True
+    "minimize_to_tray": True,
+    # Nouvelles options pour les couleurs d'interface
+    "ui_theme": "dark",          # Options: dark, light
+    "button_bg_color": "#333333",  # Couleur de fond des boutons
+    "button_fg_color": "#FFFFFF",  # Couleur de texte des boutons
+    "accent_color": "#4CAF50"    # Couleur d'accentuation
 }
 
 class ConfigManager:
