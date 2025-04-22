@@ -115,6 +115,42 @@ def install_requirements():
     
     return True
 
+def launch_app():
+    """Lance l'application principale"""
+    try:
+        # Importer directement la classe d'application plutôt que le module nightmod
+        # Cela évite une boucle d'importation potentielle
+        from src.app import NightModApp
+        
+        # S'assurer que le répertoire de configuration existe (auparavant dans nightmod.py)
+        config_dir = os.path.join(os.path.expanduser("~"), ".nightmod")
+        os.makedirs(config_dir, exist_ok=True)
+        
+        # Créer et exécuter l'application
+        app = NightModApp()
+        app.mainloop()
+        return True
+    except ImportError as e:
+        logger.error(f"Erreur lors de l'importation de la classe NightModApp: {e}")
+        print("Erreur: Impossible de trouver ou d'importer la classe principale de l'application.")
+        print(f"Détails: {e}")
+        return False
+    except Exception as e:
+        logger.error(f"Erreur lors du lancement de l'application: {e}")
+        logger.error(traceback.format_exc())
+        
+        # Afficher une boîte de dialogue d'erreur si possible
+        try:
+            import tkinter.messagebox as messagebox
+            messagebox.showerror(
+                "NightMod - Erreur critique",
+                f"Une erreur critique s'est produite:\n\n{str(e)}\n\nConsultez le fichier de log pour plus d'informations."
+            )
+        except:
+            print(f"ERREUR CRITIQUE: {e}")
+            
+        return False
+
 def main():
     """Fonction principale"""
     print("Initialisation de NightMod...")
@@ -142,24 +178,13 @@ def main():
     script_dir = Path(__file__).parent.absolute()
     sys.path.insert(0, str(script_dir))
     
-    try:
-        # Importer et lancer l'application principale
-        print("Lancement de NightMod...")
-        from nightmod import main as nightmod_main
-        nightmod_main()
-        return 0
-    except ImportError as e:
-        logger.error(f"Erreur lors de l'importation de l'application principale: {e}")
-        print("Erreur: Impossible de trouver ou d'importer l'application principale.")
-        print(f"Détails: {e}")
-    except Exception as e:
-        logger.error(f"Erreur lors du lancement de l'application: {e}")
-        logger.error(traceback.format_exc())
-        print(f"Erreur: {e}")
-        print("Consultez les logs pour plus de détails.")
-    
-    input("Appuyez sur Entrée pour quitter...")
-    return 1
+    # Lancer l'application
+    print("Lancement de NightMod...")
+    if not launch_app():
+        input("Appuyez sur Entrée pour quitter...")
+        return 1
+        
+    return 0
 
 if __name__ == "__main__":
     sys.exit(main())
