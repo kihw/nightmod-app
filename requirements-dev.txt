@@ -6,21 +6,25 @@
 # Outils de test
 pytest>=7.0.0
 pytest-cov>=3.0.0
+pytest-mock>=3.8.0
 
 # Linting et formatage
 flake8>=5.0.0
 pylint>=2.15.0
 black>=22.8.0
+isort>=5.10.0
 
 # Documentation
 sphinx>=5.0.0
 sphinx-rtd-theme>=1.0.0
+sphinx-copybutton>=0.5.0
 
 # Packaging et distribution
 wheel>=0.38.0
 twine>=4.0.0
 setuptools>=65.0.0
 build>=0.8.0
+pyinstaller>=5.6.0
 
 # Analyse statique
 mypy>=0.971
