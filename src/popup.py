@@ -10,6 +10,7 @@ from tkinter import ttk
 import logging
 import os
 import platform
+import time
 
 # Obtenir le logger
 logger = logging.getLogger("NightMod.Popup")
@@ -24,6 +25,7 @@ class PopupChecker(tk.Toplevel):
         self.on_response = on_response
         self.on_timeout = on_timeout
         self.remaining_time = response_time
+        self.initial_time = time.time()  # Stockage du temps initial pour une mesure précise
         self.config = config or {}
         self.animation_speed = 1  # Pour l'animation optionnelle
         
@@ -192,11 +194,13 @@ class PopupChecker(tk.Toplevel):
                 if self.remaining_time % 2 == 0:
                     self.bell()
             
-            # Décrémenter le temps restant
-            self.remaining_time -= 1
+            # Utilisation du temps réel écoulé pour une mesure plus précise
+            elapsed = time.time() - self.initial_time
+            # Calculer le temps restant avec précision
+            self.remaining_time = max(0, self.response_time - int(elapsed))
             
             # Continuer le compte à rebours
-            self.after(1000, self.countdown)
+            self.after(500, self.countdown)  # Mise à jour plus fréquente pour plus de précision
         else:
             logger.info("Aucune réponse reçue dans le délai imparti")
             self.destroy()
