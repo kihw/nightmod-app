@@ -9,6 +9,7 @@ import os
 import threading
 import logging
 import platform
+import weakref
 
 # Obtenir le logger
 logger = logging.getLogger("NightMod.Tray")
@@ -26,11 +27,20 @@ class TrayIcon:
             toggle_monitoring_callback: Fonction pour démarrer/arrêter la surveillance
             quit_callback: Fonction pour quitter l'application
         """
-        self.app = app
+        # Utiliser weakref pour éviter des références circulaires
+        self.app = weakref.ref(app) if app else None
         self.toggle_window_callback = toggle_window_callback
         self.toggle_monitoring_callback = toggle_monitoring_callback
         self.quit_callback = quit_callback
+        
         self.tray_icon = None
+        self.tray_thread = None
+        
+        # Attributs pour les icônes
+        self.active_icon = None  
+        self.inactive_icon = None
+        
+        # État de l'icône
         self.is_running = False
     
     def setup(self):
@@ -61,10 +71,10 @@ class TrayIcon:
             
             # Définir le menu avec libellés plus clairs
             menu = pystray.Menu(
-                pystray.MenuItem("Ouvrir NightMod", self.toggle_window_callback),
-                pystray.MenuItem("Surveillance active", self.toggle_monitoring_callback, 
-                                checked=lambda _: self.app.is_monitoring),
-                pystray.MenuItem("Quitter", self.quit_callback)
+                pystray.MenuItem("Ouvrir NightMod", self._safe_callback(self.toggle_window_callback)),
+                pystray.MenuItem("Surveillance active", self._safe_callback(self.toggle_monitoring_callback), 
+                                checked=self._is_monitoring_active),
+                pystray.MenuItem("Quitter", self._safe_callback(self.quit_callback))
             )
             
             # Créer l'icône
@@ -72,7 +82,8 @@ class TrayIcon:
             
             # Démarrer l'icône dans un thread
             self.is_running = True
-            threading.Thread(target=self.run, daemon=True).start()
+            self.tray_thread = threading.Thread(target=self.run, daemon=True)
+            self.tray_thread.start()
             
             logger.info("Icône de la barre des tâches configurée avec succès")
             return True
@@ -86,6 +97,26 @@ class TrayIcon:
             logger.error(f"Erreur lors de la configuration de l'icône de la barre des tâches: {e}")
             self.tray_icon = None
             return False
+    
+    def _safe_callback(self, callback):
+        """Wrapper pour rendre les callbacks plus sûrs"""
+        def wrapper(*args, **kwargs):
+            try:
+                if callback:
+                    return callback(*args, **kwargs)
+            except Exception as e:
+                logger.error(f"Erreur dans un callback de l'icône de la barre des tâches: {e}")
+        return wrapper
+    
+    def _is_monitoring_active(self, item):
+        """Vérifie si la surveillance est active pour le menu coché"""
+        try:
+            app = self.app()
+            if app and hasattr(app, 'is_monitoring'):
+                return app.is_monitoring
+        except Exception:
+            pass
+        return False
     
     def create_default_icon(self, is_active=False):
         """Crée une icône par défaut moderne en cas d'absence du fichier d'icône"""
@@ -204,16 +235,42 @@ class TrayIcon:
     def run(self):
         """Exécute l'icône de la barre des tâches dans un thread séparé"""
         if self.tray_icon:
-            self.tray_icon.run()
+            try:
+                self.tray_icon.run()
+            except Exception as e:
+                logger.error(f"Erreur lors de l'exécution de l'icône de la barre des tâches: {e}")
+                self.tray_icon = None
     
     def stop(self):
-        """Arrête l'icône de la barre des tâches"""
+        """Arrête l'icône de la barre des tâches et libère les ressources"""
         if self.tray_icon:
             try:
                 self.is_running = False
-                self.tray_icon.stop()
+                
+                # Essayer d'arrêter proprement l'icône
+                try:
+                    self.tray_icon.stop()
+                except:
+                    pass
+                
+                # Libérer les références pour aider le ramasse-miettes
+                self.tray_icon = None
+                self.active_icon = None
+                self.inactive_icon = None
+                
+                # Attendre que le thread se termine (avec timeout)
+                if self.tray_thread and self.tray_thread.is_alive():
+                    self.tray_thread.join(timeout=2.0)
+                    
+                logger.info("Icône de la barre des tâches arrêtée avec succès")
             except Exception as e:
                 logger.error(f"Erreur lors de l'arrêt de l'icône de la barre des tâches: {e}")
+                
+            # S'assurer que les références sont libérées même en cas d'erreur
+            self.tray_icon = None
+            self.active_icon = None
+            self.inactive_icon = None
+            self.tray_thread = None
     
     def is_available(self):
         """Vérifie si l'icône de la barre des tâches est disponible"""

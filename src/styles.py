@@ -14,8 +14,16 @@ def apply_custom_styles(style):
     """
     try:
         # Récupérer l'objet root (fenêtre principale)
-        root = style.master
-        
+        root = None
+        if hasattr(style, 'master') and style.master is not None:
+            root = style.master
+        else:
+            # Si style.master n'est pas disponible, essayer de trouver la fenêtre principale
+            root = tk._default_root
+            if root is None:
+                logger.warning("Impossible de trouver la fenêtre principale pour appliquer les styles")
+                # Continuer avec seulement les styles ttk qui ne nécessitent pas de root
+                
         # --- Configuration des couleurs ---
         BG_COLOR = "#1a1a1a"        # Arrière-plan principal (très sombre)
         FG_COLOR = "#FFFFFF"        # Texte (blanc)
@@ -27,61 +35,60 @@ def apply_custom_styles(style):
         
         # --- Configuration globale ---
         
-        # Styles pour les widgets standard (tk)
-        # Ces configurations s'appliquent à tous les widgets, même ceux créés après cette fonction
-        
-        # Boutons
-        root.option_add("*Button.background", BUTTON_BG)
-        root.option_add("*Button.foreground", FG_COLOR)
-        root.option_add("*Button.activeBackground", PRIMARY_COLOR)
-        root.option_add("*Button.activeForeground", FG_COLOR)
-        root.option_add("*Button.relief", "flat")
-        
-        # Entrées
-        root.option_add("*Entry.background", INPUT_BG)
-        root.option_add("*Entry.foreground", FG_COLOR)
-        root.option_add("*Entry.insertBackground", FG_COLOR)  # Curseur
-        root.option_add("*Entry.selectBackground", PRIMARY_COLOR)
-        root.option_add("*Entry.selectForeground", FG_COLOR)
-        root.option_add("*Entry.relief", "flat")
-        
-        # Spinbox
-        root.option_add("*Spinbox.background", INPUT_BG)
-        root.option_add("*Spinbox.foreground", FG_COLOR)
-        root.option_add("*Spinbox.buttonBackground", BUTTON_BG)
-        root.option_add("*Spinbox.relief", "flat")
-        
-        # Cases à cocher
-        root.option_add("*Checkbutton.background", BG_COLOR)
-        root.option_add("*Checkbutton.foreground", FG_COLOR)
-        root.option_add("*Checkbutton.activeBackground", BG_COLOR)
-        root.option_add("*Checkbutton.activeForeground", FG_COLOR)
-        root.option_add("*Checkbutton.selectColor", INPUT_BG)
-        
-        # Menus déroulants
-        root.option_add("*OptionMenu.background", INPUT_BG)
-        root.option_add("*OptionMenu.foreground", FG_COLOR)
-        root.option_add("*OptionMenu.activeBackground", PRIMARY_COLOR)
-        root.option_add("*OptionMenu.activeForeground", FG_COLOR)
-        
-        # Popups des menus
-        root.option_add("*Menu.background", INPUT_BG)
-        root.option_add("*Menu.foreground", FG_COLOR)
-        root.option_add("*Menu.activeBackground", PRIMARY_COLOR)
-        root.option_add("*Menu.activeForeground", FG_COLOR)
-        root.option_add("*Menu.relief", "flat")
-        
-        # Éléments de liste
-        root.option_add("*Listbox.background", INPUT_BG)
-        root.option_add("*Listbox.foreground", FG_COLOR)
-        root.option_add("*Listbox.selectBackground", PRIMARY_COLOR)
-        root.option_add("*Listbox.selectForeground", FG_COLOR)
-        
-        # Zone de texte
-        root.option_add("*Text.background", INPUT_BG)
-        root.option_add("*Text.foreground", FG_COLOR)
-        root.option_add("*Text.selectBackground", PRIMARY_COLOR)
-        root.option_add("*Text.selectForeground", FG_COLOR)
+        # Styles pour les widgets standard (tk) - uniquement si root est disponible
+        if root:
+            # Boutons
+            root.option_add("*Button.background", BUTTON_BG)
+            root.option_add("*Button.foreground", FG_COLOR)
+            root.option_add("*Button.activeBackground", PRIMARY_COLOR)
+            root.option_add("*Button.activeForeground", FG_COLOR)
+            root.option_add("*Button.relief", "flat")
+            
+            # Entrées
+            root.option_add("*Entry.background", INPUT_BG)
+            root.option_add("*Entry.foreground", FG_COLOR)
+            root.option_add("*Entry.insertBackground", FG_COLOR)  # Curseur
+            root.option_add("*Entry.selectBackground", PRIMARY_COLOR)
+            root.option_add("*Entry.selectForeground", FG_COLOR)
+            root.option_add("*Entry.relief", "flat")
+            
+            # Spinbox
+            root.option_add("*Spinbox.background", INPUT_BG)
+            root.option_add("*Spinbox.foreground", FG_COLOR)
+            root.option_add("*Spinbox.buttonBackground", BUTTON_BG)
+            root.option_add("*Spinbox.relief", "flat")
+            
+            # Cases à cocher
+            root.option_add("*Checkbutton.background", BG_COLOR)
+            root.option_add("*Checkbutton.foreground", FG_COLOR)
+            root.option_add("*Checkbutton.activeBackground", BG_COLOR)
+            root.option_add("*Checkbutton.activeForeground", FG_COLOR)
+            root.option_add("*Checkbutton.selectColor", INPUT_BG)
+            
+            # Menus déroulants
+            root.option_add("*OptionMenu.background", INPUT_BG)
+            root.option_add("*OptionMenu.foreground", FG_COLOR)
+            root.option_add("*OptionMenu.activeBackground", PRIMARY_COLOR)
+            root.option_add("*OptionMenu.activeForeground", FG_COLOR)
+            
+            # Popups des menus
+            root.option_add("*Menu.background", INPUT_BG)
+            root.option_add("*Menu.foreground", FG_COLOR)
+            root.option_add("*Menu.activeBackground", PRIMARY_COLOR)
+            root.option_add("*Menu.activeForeground", FG_COLOR)
+            root.option_add("*Menu.relief", "flat")
+            
+            # Éléments de liste
+            root.option_add("*Listbox.background", INPUT_BG)
+            root.option_add("*Listbox.foreground", FG_COLOR)
+            root.option_add("*Listbox.selectBackground", PRIMARY_COLOR)
+            root.option_add("*Listbox.selectForeground", FG_COLOR)
+            
+            # Zone de texte
+            root.option_add("*Text.background", INPUT_BG)
+            root.option_add("*Text.foreground", FG_COLOR)
+            root.option_add("*Text.selectBackground", PRIMARY_COLOR)
+            root.option_add("*Text.selectForeground", FG_COLOR)
         
         # --- Configuration des styles ttk ---
         # Pour les widgets ttk qui pourraient encore être utilisés
@@ -126,28 +133,32 @@ def apply_custom_styles(style):
         def fix_widget_colors(widget):
             """Applique manuellement les couleurs à un widget spécifique.
             Utile pour les cas où les options globales ne suffisent pas."""
-            widget_type = widget.winfo_class()
-            
-            if widget_type == "Button":
-                widget.config(bg=BUTTON_BG, fg=FG_COLOR, 
-                             activebackground=PRIMARY_COLOR, activeforeground=FG_COLOR)
-            
-            elif widget_type == "Entry":
-                widget.config(bg=INPUT_BG, fg=FG_COLOR, insertbackground=FG_COLOR)
-            
-            elif widget_type == "Checkbutton":
-                widget.config(bg=BG_COLOR, fg=FG_COLOR, selectcolor=INPUT_BG,
-                             activebackground=BG_COLOR, activeforeground=FG_COLOR)
-            
-            elif widget_type in ["Menu", "Menubutton"]:
-                widget.config(bg=INPUT_BG, fg=FG_COLOR,
-                             activebackground=PRIMARY_COLOR, activeforeground=FG_COLOR)
-            
-            # Récursion pour les conteneurs
-            if widget_type in ["Frame", "Toplevel", "LabelFrame"]:
-                widget.config(bg=BG_COLOR)
-                for child in widget.winfo_children():
-                    fix_widget_colors(child)
+            try:
+                widget_type = widget.winfo_class()
+                
+                if widget_type == "Button":
+                    widget.config(bg=BUTTON_BG, fg=FG_COLOR, 
+                                 activebackground=PRIMARY_COLOR, activeforeground=FG_COLOR)
+                
+                elif widget_type == "Entry":
+                    widget.config(bg=INPUT_BG, fg=FG_COLOR, insertbackground=FG_COLOR)
+                
+                elif widget_type == "Checkbutton":
+                    widget.config(bg=BG_COLOR, fg=FG_COLOR, selectcolor=INPUT_BG,
+                                 activebackground=BG_COLOR, activeforeground=FG_COLOR)
+                
+                elif widget_type in ["Menu", "Menubutton"]:
+                    widget.config(bg=INPUT_BG, fg=FG_COLOR,
+                                 activebackground=PRIMARY_COLOR, activeforeground=FG_COLOR)
+                
+                # Récursion pour les conteneurs
+                if widget_type in ["Frame", "Toplevel", "LabelFrame"]:
+                    widget.config(bg=BG_COLOR)
+                    for child in widget.winfo_children():
+                        fix_widget_colors(child)
+            except Exception as e:
+                # Ignorer les erreurs pour les widgets qui ne supportent pas toutes les configurations
+                logger.debug(f"Impossible de personnaliser le widget {widget}: {e}")
         
         # Exposer la fonction utilitaire au niveau global pour pouvoir l'utiliser ailleurs
         apply_custom_styles.fix_widget_colors = fix_widget_colors
@@ -155,4 +166,3 @@ def apply_custom_styles(style):
         logger.info("Styles personnalisés appliqués avec succès")
     except Exception as e:
         logger.error(f"Erreur lors de l'application des styles personnalisés: {e}")     
-        

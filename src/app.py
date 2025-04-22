@@ -12,6 +12,7 @@ from src.popup import PopupChecker
 from src.system_actions import SystemActions
 from src.tray import TrayIcon
 from src.styles import apply_custom_styles
+from src.monitoring import MonitoringManager
 
 # Définir le logger
 logger = logging.getLogger("NightMod.App")
@@ -32,7 +33,12 @@ class NightModApp(tk.Tk):
         # Initialisation du gestionnaire de surveillance
         self.is_monitoring = False
         self.next_check_time = None
-        self.timer_thread = None
+        self.monitoring_manager = MonitoringManager(
+            self, 
+            self.config,
+            self.on_user_response,
+            self.on_no_response
+        )
         
         # Création de l'icône dans la barre des tâches
         self.tray_icon = TrayIcon(
@@ -282,8 +288,9 @@ class NightModApp(tk.Tk):
             return
             
         self.is_monitoring = True
-        self.timer_thread = threading.Thread(target=self._monitoring_loop, daemon=True)
-        self.timer_thread.start()
+        
+        # Démarrer la surveillance via le gestionnaire
+        self.monitoring_manager.start_monitoring()
         
         # Mettre à jour l'interface
         self.update_status("Actif", True)
@@ -293,12 +300,17 @@ class NightModApp(tk.Tk):
         if self.tray_icon:
             self.tray_icon.update_icon(True)
             
+        # Démarrer la mise à jour périodique de l'affichage
+        self.schedule_display_update()
+            
         logger.info("Surveillance démarrée")
 
     def stop_monitoring(self):
         """Arrête la surveillance"""
         self.is_monitoring = False
-        self.next_check_time = None
+        
+        # Arrêter la surveillance via le gestionnaire
+        self.monitoring_manager.stop_monitoring()
         
         # Mettre à jour l'interface
         self.update_status("Inactif", False)
@@ -311,41 +323,22 @@ class NightModApp(tk.Tk):
             
         logger.info("Surveillance arrêtée")
     
-    def _monitoring_loop(self):
-        """Boucle principale de surveillance - renommée avec underscore pour éviter les conflits"""
-        while self.is_monitoring:
-            # Calculer le temps de la prochaine vérification
-            interval_seconds = self.config.get("check_interval_minutes", 20) * 60
-            self.next_check_time = datetime.now().timestamp() + interval_seconds
-            
-            # Mettre à jour l'affichage
+    def schedule_display_update(self):
+        """Programme la mise à jour périodique de l'affichage"""
+        if self.is_monitoring:
             self.update_next_check_time()
-            
-            # Attendre jusqu'à la prochaine vérification
-            for _ in range(interval_seconds):
-                if not self.is_monitoring:
-                    break
-                time.sleep(1)
-                
-                # Mettre à jour l'affichage toutes les 30 secondes
-                if _ % 30 == 0:
-                    self.update_next_check_time()
-            
-            # Vérifier si la surveillance est toujours active
-            if not self.is_monitoring:
-                break
-                
-            # Afficher la fenêtre de vérification
-            self.after(0, self.show_check_popup)
+            self.after(1000, self.schedule_display_update)
     
     def update_next_check_time(self):
         """Met à jour l'affichage du temps avant la prochaine vérification"""
-        if not self.next_check_time:
+        next_time = self.monitoring_manager.next_check_time
+        
+        if not next_time:
             self.next_check_var.set("Aucune vérification prévue")
             return
             
         # Calculer le temps restant
-        remaining = max(0, int(self.next_check_time - datetime.now().timestamp()))
+        remaining = max(0, int(next_time - datetime.now().timestamp()))
         minutes = remaining // 60
         seconds = remaining % 60
         
@@ -354,17 +347,6 @@ class NightModApp(tk.Tk):
             self.next_check_var.set(f"Dans {minutes} min {seconds} sec")
         else:
             self.next_check_var.set(f"Dans {seconds} secondes")
-    
-    def show_check_popup(self):
-        """Affiche la fenêtre de vérification"""
-        response_time = self.config.get("response_time_seconds", 30)
-        PopupChecker(
-            self,
-            response_time,
-            self.on_user_response,
-            self.on_no_response,
-            self.config
-        )
 
     def update_status(self, status, active=False):
         """Met à jour l'affichage de l'état"""
@@ -387,15 +369,7 @@ class NightModApp(tk.Tk):
     
     def on_no_response(self):
         """Appelé lorsque l'utilisateur ne répond pas au popup"""
-        logger.info("Aucune réponse de l'utilisateur, exécution de l'action configurée")
-        
-        # Exécuter l'action configurée
-        action = self.config.get("shutdown_action", "shutdown")
-        try:
-            SystemActions.perform_action(action)
-        except Exception as e:
-            logger.error(f"Erreur lors de l'exécution de l'action: {e}")
-        
+        logger.info("Aucune réponse de l'utilisateur, arrêt de la surveillance")
         # Arrêter la surveillance
         self.stop_monitoring()
     
