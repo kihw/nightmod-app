@@ -132,13 +132,14 @@ class NightModApp(tk.Tk):
         controls_frame = ttk.Frame(self.main_frame)
         controls_frame.pack(pady=20)
         
-        # Bouton de surveillance
-        self.monitoring_button = ttk.Button(
+        # Bouton de surveillance - utiliser un bouton standard au lieu de ttk
+        self.monitoring_button = tk.Button(
             controls_frame,
             text="Démarrer la surveillance",
             command=self.toggle_monitoring,
-            style="Accent.TButton",
-            width=30
+            width=30,
+            padx=10,
+            pady=5
         )
         self.monitoring_button.pack(pady=5)
         
@@ -158,16 +159,14 @@ class NightModApp(tk.Tk):
         ttk.Label(interval_frame, text="Intervalle entre les vérifications (minutes):").grid(row=0, column=0, sticky=tk.W)
         
         self.interval_var = tk.StringVar(value=str(self.config.get("check_interval_minutes", 20)))
-        interval_spinbox = ttk.Spinbox(
+        # Utiliser un widget Entry standard au lieu de Spinbox
+        interval_entry = tk.Entry(
             interval_frame,
-            from_=5,
-            to=120,
-            increment=5,
             textvariable=self.interval_var,
             width=5
         )
-        interval_spinbox.grid(row=0, column=1, padx=10)
-        interval_spinbox.bind("<FocusOut>", self.save_settings)
+        interval_entry.grid(row=0, column=1, padx=10)
+        interval_entry.bind("<FocusOut>", self.save_settings)
         
         # Frame pour le temps de réponse
         response_frame = ttk.Frame(settings_frame)
@@ -176,16 +175,14 @@ class NightModApp(tk.Tk):
         ttk.Label(response_frame, text="Temps de réponse maximum (secondes):").grid(row=0, column=0, sticky=tk.W)
         
         self.response_var = tk.StringVar(value=str(self.config.get("response_time_seconds", 30)))
-        response_spinbox = ttk.Spinbox(
+        # Utiliser un widget Entry standard au lieu de Spinbox
+        response_entry = tk.Entry(
             response_frame,
-            from_=10,
-            to=60,
-            increment=5,
             textvariable=self.response_var,
             width=5
         )
-        response_spinbox.grid(row=0, column=1, padx=10)
-        response_spinbox.bind("<FocusOut>", self.save_settings)
+        response_entry.grid(row=0, column=1, padx=10)
+        response_entry.bind("<FocusOut>", self.save_settings)
         
         # Frame pour l'action en cas d'inactivité
         action_frame = ttk.Frame(settings_frame)
@@ -194,46 +191,55 @@ class NightModApp(tk.Tk):
         ttk.Label(action_frame, text="Action en cas d'inactivité:").grid(row=0, column=0, sticky=tk.W)
         
         self.action_var = tk.StringVar(value=self.config.get("shutdown_action", "shutdown"))
-        action_combo = ttk.Combobox(
+        # Utiliser un OptionMenu standard au lieu de Combobox
+        action_options = ["shutdown", "sleep", "lock"]
+        action_menu = tk.OptionMenu(
             action_frame,
-            textvariable=self.action_var,
-            values=["shutdown", "sleep", "lock"],
-            state="readonly",
-            width=10
+            self.action_var,
+            *action_options
         )
-        action_combo.grid(row=0, column=1, padx=10)
-        action_combo.bind("<<ComboboxSelected>>", self.save_settings)
+        action_menu.config(width=10)
+        action_menu.grid(row=0, column=1, padx=10)
+        self.action_var.trace("w", lambda *args: self.save_settings())
         
         # Options supplémentaires
         options_frame = ttk.Frame(settings_frame)
         options_frame.pack(fill=tk.X, pady=10)
         
-        # Option pour le son de notification
+        # Option pour le son de notification - utiliser Checkbutton standard
         self.sound_var = tk.BooleanVar(value=self.config.get("sound_enabled", True))
-        ttk.Checkbutton(
+        sound_check = tk.Checkbutton(
             options_frame,
             text="Activer le son de notification",
             variable=self.sound_var,
             command=self.save_settings
-        ).pack(anchor=tk.W, pady=2)
+        )
+        sound_check.pack(anchor=tk.W, pady=2)
         
         # Option pour démarrer la surveillance automatiquement
         self.autostart_var = tk.BooleanVar(value=self.config.get("start_with_system", False))
-        ttk.Checkbutton(
+        autostart_check = tk.Checkbutton(
             options_frame,
             text="Démarrer la surveillance automatiquement",
             variable=self.autostart_var,
             command=self.save_settings
-        ).pack(anchor=tk.W, pady=2)
+        )
+        autostart_check.pack(anchor=tk.W, pady=2)
         
         # Option pour minimiser dans la barre des tâches
         self.minimize_var = tk.BooleanVar(value=self.config.get("minimize_to_tray", True))
-        ttk.Checkbutton(
+        minimize_check = tk.Checkbutton(
             options_frame,
             text="Minimiser dans la barre des tâches",
             variable=self.minimize_var,
             command=self.save_settings
-        ).pack(anchor=tk.W, pady=2)
+        )
+        minimize_check.pack(anchor=tk.W, pady=2)
+        
+        # Appliquer les couleurs à tous les widgets créés
+        if hasattr(apply_custom_styles, 'fix_widget_colors'):
+            for widget in self.winfo_children():
+                apply_custom_styles.fix_widget_colors(widget)
 
     def save_settings(self, event=None):
         """Sauvegarde les paramètres dans le fichier de configuration"""
@@ -276,13 +282,12 @@ class NightModApp(tk.Tk):
             return
             
         self.is_monitoring = True
-        # Important : utiliser une méthode d'instance, pas une méthode de la classe Tk
         self.timer_thread = threading.Thread(target=self._monitoring_loop, daemon=True)
         self.timer_thread.start()
         
         # Mettre à jour l'interface
         self.update_status("Actif", True)
-        self.monitoring_button.config(text="Arrêter la surveillance")
+        self.monitoring_button.config(text="Arrêter la surveillance", bg="#F44336", fg="#FFFFFF")
         
         # Mettre à jour l'icône de la barre des tâches
         if self.tray_icon:
@@ -297,7 +302,7 @@ class NightModApp(tk.Tk):
         
         # Mettre à jour l'interface
         self.update_status("Inactif", False)
-        self.monitoring_button.config(text="Démarrer la surveillance")
+        self.monitoring_button.config(text="Démarrer la surveillance", bg="#4CAF50", fg="#FFFFFF")
         self.next_check_var.set("Aucune vérification prévue")
         
         # Mettre à jour l'icône de la barre des tâches
