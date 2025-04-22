@@ -13,11 +13,16 @@ import subprocess
 import importlib.util
 import logging
 import traceback
+from pathlib import Path
 
 # Configuration basique du logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("nightmod.log"),
+        logging.StreamHandler()
+    ]
 )
 logger = logging.getLogger("NightMod.Launcher")
 
@@ -93,6 +98,23 @@ def check_dependencies():
     
     return True
 
+def install_requirements():
+    """Installe les dépendances depuis requirements.txt si nécessaire"""
+    requirements_file = Path("requirements.txt")
+    
+    if requirements_file.exists():
+        try:
+            print("Installation des dépendances depuis requirements.txt...")
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", str(requirements_file)])
+            print("✓ Dépendances installées avec succès")
+            return True
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Erreur lors de l'installation des dépendances: {e}")
+            print(f"✗ Erreur lors de l'installation des dépendances: {e}")
+            return False
+    
+    return True
+
 def main():
     """Fonction principale"""
     print("Initialisation de NightMod...")
@@ -107,13 +129,24 @@ def main():
         input("Appuyez sur Entrée pour quitter...")
         return 1
     
+    # Installer les dépendances si nécessaire et demandé par l'utilisateur
+    print("Voulez-vous vérifier et installer les dépendances maintenant? (o/n)")
+    choice = input("> ").lower()
+    
+    if choice == 'o':
+        if not install_requirements():
+            input("Appuyez sur Entrée pour quitter...")
+            return 1
+    
     # Ajouter le répertoire courant au chemin de recherche des modules
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    script_dir = Path(__file__).parent.absolute()
+    sys.path.insert(0, str(script_dir))
     
     try:
         # Importer et lancer l'application principale
-        from nightmod import main
-        main()
+        print("Lancement de NightMod...")
+        from nightmod import main as nightmod_main
+        nightmod_main()
         return 0
     except ImportError as e:
         logger.error(f"Erreur lors de l'importation de l'application principale: {e}")
