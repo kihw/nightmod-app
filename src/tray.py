@@ -62,7 +62,8 @@ class TrayIcon:
             # Définir le menu avec libellés plus clairs
             menu = pystray.Menu(
                 pystray.MenuItem("Ouvrir NightMod", self.toggle_window_callback),
-                pystray.MenuItem("Surveillance active", self.toggle_monitoring_callback, checked=lambda _: self.app.monitoring_manager.is_running),
+                pystray.MenuItem("Surveillance active", self.toggle_monitoring_callback, 
+                                checked=lambda _: self.app.is_monitoring),
                 pystray.MenuItem("Quitter", self.quit_callback)
             )
             

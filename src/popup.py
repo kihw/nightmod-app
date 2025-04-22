@@ -26,7 +26,6 @@ class PopupChecker(tk.Toplevel):
         self.remaining_time = response_time
         self.config = config or {}
         self.animation_speed = 1  # Pour l'animation optionnelle
-        self.initial_time = response_time  # Stockage du temps initial pour les calculs
         
         # Configuration de la fenêtre
         self.title("NightMod - Vérification")
@@ -86,13 +85,13 @@ class PopupChecker(tk.Toplevel):
                              font=("Segoe UI", 9))
 
         # Style du bouton principal - Visible mais pas agressif
-        self.style.configure("Sleep.TButton", 
+        self.style.configure("Wake.TButton", 
                              font=("Segoe UI", 12, "bold"),
                              padding=12,
                              background="#4CAF50",
                              foreground="#FFFFFF")
 
-        self.style.map("Sleep.TButton", 
+        self.style.map("Wake.TButton", 
                        background=[("pressed", "#3C9E3C"), ("active", "#3C9E3C")],
                        foreground=[("pressed", "#FFFFFF"), ("active", "#FFFFFF")])
 
@@ -141,7 +140,7 @@ class PopupChecker(tk.Toplevel):
             button_frame, 
             text="Je suis éveillé",
             command=self.handle_response,
-            style="Sleep.TButton",  # Style personnalisé plus visible
+            style="Wake.TButton",  # Style personnalisé plus visible
             width=20,
             padding=(10, 12)  # Bouton plus grand
         )
@@ -334,7 +333,7 @@ class PopupChecker(tk.Toplevel):
         
         # Calculer l'étendue de l'arc (360 degrés représente le temps complet)
         # Commencer à 90 degrés (haut) et aller dans le sens horaire
-        progress_percent = self.remaining_time / self.initial_time
+        progress_percent = self.remaining_time / self.response_time
         arc_extent = -359.9 * progress_percent  # Négatif pour l'orientation horaire
         
         # Mettre à jour l'arc de progression
