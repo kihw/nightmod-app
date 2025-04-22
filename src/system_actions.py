@@ -10,6 +10,8 @@ import os
 import platform
 import logging
 import subprocess
+import shlex
+import sys
 
 # Obtenir le logger
 logger = logging.getLogger("NightMod.SystemActions")
@@ -24,11 +26,14 @@ class SystemActions:
         
         try:
             if platform.system() == "Windows":
-                os.system("shutdown /s /t 10 /c \"NightMod: Extinction automatique\"")
+                # Utiliser subprocess au lieu de os.system pour plus de sécurité
+                subprocess.run(["shutdown", "/s", "/t", "10", "/c", "NightMod: Extinction automatique"], check=True)
             elif platform.system() == "Darwin":  # macOS
-                os.system("osascript -e 'tell app \"System Events\" to shut down'")
+                script = "tell app \"System Events\" to shut down"
+                subprocess.run(["osascript", "-e", script], check=True)
             else:  # Linux et autres Unix
-                os.system("shutdown -h now")
+                # Utiliser des arguments séparés au lieu d'une chaîne de commande
+                subprocess.run(["shutdown", "-h", "now"], check=True)
             return True
         except Exception as e:
             logger.error(f"Erreur lors de l'extinction: {e}")
@@ -41,18 +46,32 @@ class SystemActions:
         
         try:
             if platform.system() == "Windows":
-                os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
+                subprocess.run(["rundll32.exe", "powrprof.dll,SetSuspendState", "0,1,0"], check=True)
             elif platform.system() == "Darwin":  # macOS
-                os.system("pmset sleepnow")
+                subprocess.run(["pmset", "sleepnow"], check=True)
             else:  # Linux
                 # Essayer plusieurs méthodes car cela peut varier selon les distributions
-                try:
-                    subprocess.run(["systemctl", "suspend"], check=True)
-                except:
+                methods = [
+                    ["systemctl", "suspend"],
+                    ["pm-suspend"],
+                    ["echo", "mem", ">", "/sys/power/state"]
+                ]
+                
+                for method in methods:
                     try:
-                        subprocess.run(["pm-suspend"], check=True)
-                    except:
-                        os.system("echo mem > /sys/power/state")
+                        if method[0] == "echo":
+                            # Cas spécial pour la redirection
+                            with open("/sys/power/state", "w") as f:
+                                f.write("mem")
+                            break
+                        else:
+                            subprocess.run(method, check=True)
+                            break
+                    except (subprocess.SubprocessError, FileNotFoundError, PermissionError):
+                        continue
+                    except Exception as method_error:
+                        logger.warning(f"Méthode {method[0]} a échoué: {method_error}")
+                        continue
             return True
         except Exception as e:
             logger.error(f"Erreur lors de la mise en veille: {e}")
@@ -65,9 +84,9 @@ class SystemActions:
         
         try:
             if platform.system() == "Windows":
-                os.system("rundll32.exe user32.dll,LockWorkStation")
+                subprocess.run(["rundll32.exe", "user32.dll,LockWorkStation"], check=True)
             elif platform.system() == "Darwin":  # macOS
-                os.system("pmset displaysleepnow")
+                subprocess.run(["pmset", "displaysleepnow"], check=True)
             else:  # Linux
                 # Essayer plusieurs méthodes car cela peut varier selon les distributions et environnements de bureau
                 methods = [
@@ -82,11 +101,14 @@ class SystemActions:
                     try:
                         subprocess.run(method, check=True)
                         return True
-                    except:
+                    except (subprocess.SubprocessError, FileNotFoundError):
+                        continue
+                    except Exception as method_error:
+                        logger.warning(f"Méthode {method[0]} a échoué: {method_error}")
                         continue
                 
                 logger.warning("Aucune méthode de verrouillage d'écran n'a fonctionné. Essai de mise en veille de l'écran.")
-                os.system("xset dpms force off")
+                subprocess.run(["xset", "dpms", "force", "off"], check=True)
             return True
         except Exception as e:
             logger.error(f"Erreur lors du verrouillage: {e}")
@@ -101,22 +123,25 @@ class SystemActions:
             "lock": SystemActions.lock
         }
         
-        if action in actions:
-            return actions[action]()
-        else:
+        # Vérification de sécurité pour éviter l'injection de commandes
+        if action not in actions:
             logger.error(f"Action non reconnue: {action}")
             return False
+            
+        return actions[action]()
     
     @staticmethod
     def configure_autostart(enable, app_path=None):
         """Configure le démarrage automatique au démarrage du système"""
         if app_path is None:
-            import sys
+            # Utiliser le chemin de l'exécutable actuel
             app_path = sys.executable
             
             # Si c'est un script Python, utiliser l'interpréteur
             if not app_path.endswith(('.exe', '.app')):
-                app_path = f"{sys.executable} {os.path.abspath(sys.argv[0])}"
+                # Utiliser le chemin absolu du script principal
+                script_path = os.path.abspath(sys.argv[0])
+                app_path = f'"{sys.executable}" "{script_path}"'
         
         logger.info(f"Configuration du démarrage automatique: {'activer' if enable else 'désactiver'}")
         
