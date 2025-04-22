@@ -86,9 +86,11 @@ class NightModApp(tk.Tk):
         self.protocol("WM_DELETE_WINDOW", lambda: self.on_close())
         
         # Raccourcis clavier
-        self.bind("<Alt-q>", lambda _: self.on_close())
-        self.bind("<Alt-n>", lambda _: self.toggle_visibility())
-        self.bind("<F1>", lambda _: self.show_help())
+
+        self.bind("<Alt-q>", lambda e: self.on_close())
+        self.bind("<Alt-n>", lambda e: self.toggle_visibility())
+        self.bind("<F1>", lambda e: self.show_help())
+
         
         # Empêcher le redimensionnement sur certaines plateformes (pour une meilleure apparence)
         if platform.system() == "Windows" or platform.system() == "Darwin":  # Windows ou macOS
@@ -98,85 +100,14 @@ class NightModApp(tk.Tk):
     def configure_theme(self):
         """Configure un thème moderne pour l'interface utilisateur"""
         try:
+
+            # Essayer de charger le thème moderne personnalisé
             theme_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "themes/modern.tcl")
             if os.path.exists(theme_path):
                 self.tk.call("source", theme_path)
-                self.tk.call("ttk::style", "theme", "use", "modern")
+                self.tk.call("set_theme", "dark")
                 logger.info("Thème moderne appliqué avec succès")
-
-                # Ajoute explicitement ces styles pour éviter les widgets blancs
-                self.style.configure("TButton",
-                                     background="#2d2d2d",
-                                     foreground="#ffffff",
-                                     padding=6,
-                                     borderwidth=0,
-                                     focusthickness=3,
-                                     focuscolor="#4CAF50")
-                self.style.map("TButton",
-                               background=[("pressed", "#252525"), ("active", "#333333")])
-
-                self.style.configure("TEntry",
-                                     fieldbackground="#252525",
-                                     foreground="#ffffff",
-                                     padding=8,
-                                     borderwidth=0,
-                                     relief="flat")
-
-                self.style.configure("TSpinbox",
-                                     fieldbackground="#252525",
-                                     foreground="#ffffff",
-                                     padding=8,
-                                     borderwidth=0,
-                                     relief="flat")
-
-                self.style.configure("TCombobox",
-                                     fieldbackground="#252525",
-                                     background="#252525",
-                                     foreground="#ffffff",
-                                     padding=8,
-                                     borderwidth=0,
-                                     relief="flat")
-
                 return True
-
-            # Fallback: essayer le thème Azure
-            theme_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "themes/azure.tcl")
-            if os.path.exists(theme_path):
-                self.tk.call("source", theme_path)
-                self.tk.call("ttk::style", "theme", "use", "azure")
-                logger.info("Thème Azure appliqué avec succès")
-                # Ajoute explicitement ces styles pour éviter les widgets blancs
-                self.style.configure("TButton",
-                                     background="#2d2d2d",
-                                     foreground="#ffffff",
-                                     padding=6,
-                                     borderwidth=0,
-                                     focusthickness=3,
-                                     focuscolor="#4CAF50")
-                self.style.map("TButton",
-                               background=[("pressed", "#252525"), ("active", "#333333")])
-                self.style.configure("TEntry",
-                                     fieldbackground="#252525",
-                                     foreground="#ffffff",
-                                     padding=8,
-                                     borderwidth=0,
-                                     relief="flat")
-                self.style.configure("TSpinbox",
-                                     fieldbackground="#252525",
-                                     foreground="#ffffff",
-                                     padding=8,
-                                     borderwidth=0,
-                                     relief="flat")
-                self.style.configure("TCombobox",
-                                     fieldbackground="#252525",
-                                     background="#252525",
-                                     foreground="#ffffff",
-                                     padding=8,
-                                     borderwidth=0,
-                                     relief="flat")
-                return True
-        except Exception as e:
-            logger.warning(f"Impossible de charger le thème personnalisé: {e}")
 
         
         # Fallback: style personnalisé basique
@@ -368,6 +299,7 @@ class NightModApp(tk.Tk):
         # Première colonne: Intervalles
         interval_frame = ttk.Frame(settings_grid)
         interval_frame.grid(row=0, column=0, sticky=tk.W, padx=(0, 20), pady=10)
+
         
         ttk.Label(
             interval_frame, 
@@ -377,6 +309,7 @@ class NightModApp(tk.Tk):
         
         ttk.Label(
             interval_frame, 
+
             text="Vérification:"
         ).grid(row=1, column=0, sticky=tk.W, pady=5)
         
@@ -431,6 +364,7 @@ class NightModApp(tk.Tk):
         )
         action_combo["values"] = ("shutdown", "sleep", "lock")
         action_combo.grid(row=1, column=1, sticky=tk.W, padx=10, pady=5)
+
         
         # Section des options avec cases à cocher - Alignement simplifié
         options_frame = ttk.Frame(settings_frame)

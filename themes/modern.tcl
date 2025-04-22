@@ -224,16 +224,16 @@ namespace eval ttk::theme::modern {
         
         # Boutons principaux
         ttk::style configure TButton \
-            -background "#2d2d2d" \
-            -foreground "#ffffff" \
-            -padding 6 \
+            -padding {8 6} \
+            -background $colors(-lightbg) \
+            -foreground $colors(-fg) \
             -borderwidth 0 \
-            -focusthickness 3 \
-            -focuscolor "#4CAF50"
-
+            -relief flat
+            
         ttk::style map TButton \
-            -background [list pressed "#252525" active "#333333"] \
-            -foreground [list disabled "#9e9e9e"]
+            -background [list pressed $colors(-darkbg) active $colors(-lightbg)] \
+            -foreground [list disabled $colors(-disabledfg)]
+
         # Bouton d'accent (principal)
         ttk::style configure Primary.TButton \
             -background $colors(-accent) \
@@ -302,32 +302,28 @@ namespace eval ttk::theme::modern {
         
         # Entrées et combobox
         ttk::style configure TEntry \
-            -fieldbackground "#252525" \
-            -background "#252525" \
-            -foreground "#ffffff" \
-            -padding 8 \
-            -borderwidth 1 \
-            -relief flat
-        
-        ttk::style configure TSpinbox \
-            -fieldbackground "#252525" \
-            -background "#252525" \
-            -foreground "#ffffff" \
-            -padding 8 \
-            -borderwidth 1 \
-            -relief flat
+            -background $colors(-darkbg) \
+            -foreground $colors(-fg) \
+            -fieldbackground $colors(-darkbg) \
+            -borderwidth 0 \
+            -padding {8 8}
         
         ttk::style configure TCombobox \
-            -fieldbackground "#252525" \
-            -background "#252525" \
-            -foreground "#ffffff" \
-            -padding 8 \
-            -borderwidth 1 \
-            -relief flat
+            -background $colors(-darkbg) \
+            -foreground $colors(-fg) \
+            -fieldbackground $colors(-darkbg) \
+            -arrowcolor $colors(-accent) \
+            -borderwidth 0 \
+            -padding {8 8}
         
-        ttk::style map TCombobox \
-            -fieldbackground [list readonly "#252525" active "#333333"] \
-            -foreground [list readonly "#ffffff"]
+        ttk::style configure TSpinbox \
+            -background $colors(-darkbg) \
+            -foreground $colors(-fg) \
+            -fieldbackground $colors(-darkbg) \
+            -arrowcolor $colors(-accent) \
+            -borderwidth 0 \
+            -padding {8 8}
+
         # Scales et Progressbars
         ttk::style configure TScale \
             -background $colors(-bg) \
