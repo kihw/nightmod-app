@@ -1,44 +1,77 @@
 # NightMod
 
-NightMod est une extension légère pour les navigateurs qui permet d'activer un mode sombre personnalisable sur n'importe quel site web.
+NightMod est une application de bureau légère qui surveille votre activité et éteint ou verrouille automatiquement votre ordinateur lorsque vous vous endormez.
 
 ## Fonctionnalités
 
-- **Mode sombre automatique** : Convertit automatiquement les sites web en mode sombre
-- **Personnalisation** : Configurez les couleurs et le contraste selon vos préférences
-- **Règles par site** : Définissez des règles spécifiques pour certains sites web
-- **Performance optimisée** : Impact minimal sur les performances de navigation
-- **Compatibilité multiple** : Fonctionne sur Chrome, Firefox et Edge
+- **Surveillance intelligente** : Détecte l'inactivité et vérifie si vous êtes endormi
+- **Actions configurables** : Extinction, mise en veille ou verrouillage de l'écran
+- **Interface moderne** : Design sombre confortable pour une utilisation nocturne
+- **Icône dans la barre des tâches** : Contrôle facile depuis la barre système
+- **Compatibilité multiple** : Fonctionne sur Windows, macOS et Linux
 
 ## Installation
 
-### Chrome / Edge
+### Windows
 
-1. Téléchargez le répertoire ou clonez-le via `git clone https://github.com/kihw/nightmod.git`
-2. Ouvrez la page des extensions de votre navigateur (`chrome://extensions/` ou `edge://extensions/`)
-3. Activez le "Mode développeur"
-4. Cliquez sur "Charger l'extension non empaquetée" et sélectionnez le dossier du projet
+1. Téléchargez le fichier d'installation `NightMod-Setup-x.x.x.exe` depuis la page des [releases](https://github.com/kihw/nightmod-app/releases)
+2. Double-cliquez sur le fichier et suivez les instructions à l'écran
+3. Une fois l'installation terminée, NightMod sera disponible dans le menu Démarrer et sur votre bureau
 
-### Firefox
+### macOS
 
-1. Téléchargez le répertoire ou clonez-le via `git clone https://github.com/kihw/nightmod.git`
-2. Naviguez vers `about:debugging#/runtime/this-firefox`
-3. Cliquez sur "Charger un module temporaire"
-4. Sélectionnez le fichier `manifest.json` dans le dossier du projet
+1. Téléchargez le fichier `NightMod-x.x.x.dmg` depuis la page des [releases](https://github.com/kihw/nightmod-app/releases)
+2. Ouvrez le fichier DMG et faites glisser l'application NightMod vers votre dossier Applications
+3. Lors du premier lancement, macOS pourrait vous demander de confirmer l'ouverture
+
+### Linux
+
+1. Téléchargez le fichier `NightMod-x.x.x-Linux.tar.gz` depuis la page des [releases](https://github.com/kihw/nightmod-app/releases)
+2. Extrayez l'archive: `tar -xzf NightMod-x.x.x-Linux.tar.gz`
+3. Accédez au répertoire extrait: `cd NightMod-x.x.x-Linux`
+4. Exécutez le script d'installation: `sudo ./install.sh`
 
 ## Utilisation
 
-- Cliquez sur l'icône de l'extension dans la barre d'outils pour activer/désactiver le mode sombre
-- Accédez aux paramètres en cliquant sur l'icône d'engrenage
-- Personnalisez les couleurs, le contraste et d'autres options selon vos préférences
+- Lancez NightMod depuis le menu de votre système ou le raccourci sur le bureau
+- Configurez les options selon vos préférences (intervalle de vérification, action à effectuer)
+- Cliquez sur "Démarrer la surveillance" pour activer NightMod
+- L'application vous demandera périodiquement si vous êtes éveillé
+- Si vous ne répondez pas, l'action configurée (extinction, veille, verrouillage) sera exécutée
 
-## Configuration avancée
+Pour plus de détails, consultez le [Guide d'utilisation](GUIDE_UTILISATEUR.md).
 
-Vous pouvez personnaliser davantage l'extension en modifiant les options dans le panneau de configuration :
+## Développement
 
-- **Niveau d'intensité** : Ajustez l'intensité du mode sombre (0-100%)
-- **Exclusions** : Ajoutez des sites à la liste d'exclusion où le mode sombre ne sera pas appliqué
-- **Règles CSS personnalisées** : Définissez vos propres règles CSS pour des sites spécifiques
+### Prérequis
+
+- Python 3.6 ou supérieur
+- Tkinter (interface graphique)
+- Les dépendances listées dans `requirements.txt`
+
+### Installation des dépendances
+
+```bash
+pip install -r requirements.txt
+```
+
+Pour le développement :
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+### Exécution depuis les sources
+
+```bash
+python run.py
+```
+
+### Compilation
+
+```bash
+python build.py
+```
 
 ## Contribution
 
